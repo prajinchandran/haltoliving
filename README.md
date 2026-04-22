@@ -2,7 +2,7 @@
 
 React frontend for the Halto API.
 
-## Setup (one time)
+## Setup
 
 1. Extract this folder to:
    ```
