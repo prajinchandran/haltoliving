@@ -1,4 +1,4 @@
-# Halto UI
+# Halto Living UI
 
 React frontend for the Halto API.
 
