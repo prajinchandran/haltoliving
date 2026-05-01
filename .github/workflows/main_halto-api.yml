@@ -1,4 +1,4 @@
-name: Build and deploy React app to Azure Web App - halto-api
+name: Deploy Frontend to Azure Web App
 
 on:
   push:
@@ -14,27 +14,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build app
+      - name: Build with API URL
+        env:
+          # Set this secret in your GitHub repo:
+          # Settings → Secrets and variables → Actions → New repository secret
+          # Name: VITE_API_URL
+          # Value: https://halto-api-backend-efbafkczc4f2chc6.canadacentral-01.azurewebsites.net
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
-      # ✅ Zip the dist folder
-      - name: Zip build folder
-        run: |
-          cd dist
-          zip -r ../app.zip .
-
-      # ✅ Deploy ZIP (IMPORTANT)
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'halto-api'
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: app.zip
+          package: ./dist
