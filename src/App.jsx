@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const API_BASE = ""; // Vite proxies /api → http://localhost:5005
+const API_BASE = import.meta.env.VITE_API_URL ?? ""; // Set VITE_API_URL to your Azure API URL in production
 
 // ─── API Helper ───────────────────────────────────────────────────────────────
 async function api(path, options = {}) {
