@@ -1,16 +1,11 @@
 import { useState, useEffect, useCallback, createContext, useContext } from "react";
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-const API_BASE = import.meta.env.VITE_API_URL ?? ""; // Set VITE_API_URL to your Azure API URL in production
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-// ─── API Helper ───────────────────────────────────────────────────────────────
 async function api(path, options = {}) {
   const token = localStorage.getItem("halto_token");
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...options,
   });
   const data = await res.json().catch(() => ({}));
@@ -18,11 +13,8 @@ async function api(path, options = {}) {
   return data?.data ?? data;
 }
 
-// ─── Auth Context ─────────────────────────────────────────────────────────────
 const AuthContext = createContext(null);
 const useAuth = () => useContext(AuthContext);
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
 const ToastCtx = createContext(null);
 const useToast = () => useContext(ToastCtx);
 
@@ -36,13 +28,13 @@ function ToastProvider({ children }) {
   return (
     <ToastCtx.Provider value={toast}>
       {children}
-      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ position: "fixed", bottom: 24, right: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, maxWidth: "calc(100vw - 32px)" }}>
         {toasts.map(t => (
           <div key={t.id} style={{
-            padding: "11px 18px", borderRadius: 8, fontSize: 14, fontWeight: 500,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.18)", minWidth: 260, display: "flex", alignItems: "center", gap: 10,
+            padding: "11px 18px", borderRadius: 10, fontSize: 14, fontWeight: 500,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.22)", minWidth: 240, display: "flex", alignItems: "center", gap: 10,
             animation: "slideInRight .28s cubic-bezier(.34,1.56,.64,1)",
-            background: t.type === "success" ? "#4A8C6F" : t.type === "error" ? "#C44F4F" : "#2C2420",
+            background: t.type === "success" ? "#0F6E56" : t.type === "error" ? "#C44F4F" : "#1a2e2a",
             color: "white"
           }}>
             <span>{t.type === "success" ? "✓" : t.type === "error" ? "✕" : "●"}</span>{t.msg}
@@ -53,161 +45,183 @@ function ToastProvider({ children }) {
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = n => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n ?? 0);
 const initials = (name = "") => name.split(" ").slice(0, 2).map(w => w[0] ?? "").join("").toUpperCase();
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const ID_TYPES = ["Aadhaar", "Passport", "Driving License", "Voter ID", "PAN Card", "Other"];
 
-// ─── Global CSS ───────────────────────────────────────────────────────────────
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --cream:#FAF7F2; --warm:#FFFDF9;
-    --terra:#C4694F; --terra-l:#D4836A; --terra-d:#A85540; --terra-p:#F5E8E3;
-    --coal:#2C2420; --coal-m:#4A3F3A;
-    --stone:#8C7D75; --stone-l:#BFB5AF; --stone-p:#EDE8E4;
-    --ok:#4A8C6F; --ok-p:#E3F0EA;
-    --warn:#C49A3C; --warn-p:#FAF3E0;
-    --err:#C44F4F; --err-p:#F5E3E3;
-    --sidebar:260px; --r:12px; --r-s:8px;
-    --sh:0 2px 12px rgba(44,36,32,.08); --sh-m:0 4px 24px rgba(44,36,32,.13); --sh-l:0 8px 40px rgba(44,36,32,.18);
+    --teal:#1D9E75; --teal-d:#0F6E56; --teal-dd:#085041; --teal-l:#5DCAA5;
+    --teal-p:#E1F5EE; --teal-pp:#9FE1CB;
+    --navy:#0a1f1a; --navy-m:#122b23; --navy-s:#1a3d32;
+    --ink:#1a2e2a; --ink-m:#2d4a40; --ink-l:#4a6b5e;
+    --mist:#f0f9f5; --mist-d:#d8f0e5; --mist-dd:#b0dcc8;
+    --warm:#ffffff; --surface:#f7fdf9;
+    --ok:#0F6E56; --ok-p:#E1F5EE;
+    --warn:#B8860B; --warn-p:#FFF8DC;
+    --err:#C0392B; --err-p:#FDECEA;
+    --sidebar:260px;
+    --r:12px; --r-s:8px; --r-xs:6px;
+    --sh:0 1px 8px rgba(15,110,86,.08); --sh-m:0 4px 20px rgba(15,110,86,.13); --sh-l:0 8px 32px rgba(15,110,86,.18);
     --t:.18s cubic-bezier(.4,0,.2,1);
+    --header-h:64px;
   }
-  body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--coal);line-height:1.6;-webkit-font-smoothing:antialiased}
+  body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
   @keyframes slideInRight{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   @keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 
-  /* Auth */
+  /* ── Auth ── */
   .auth-wrap{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
-  .auth-panel{background:var(--coal);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;position:relative;overflow:hidden}
-  .auth-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 70%,rgba(196,105,79,.28) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(196,105,79,.15) 0%,transparent 50%)}
-  .auth-logo{font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:var(--cream);letter-spacing:-1px;position:relative;z-index:1}
-  .auth-logo span{color:var(--terra)}
-  .auth-form-side{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px}
-  .auth-form-wrap{width:100%;max-width:420px}
+  .auth-panel{background:var(--navy);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;position:relative;overflow:hidden}
+  .auth-panel::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 80%,rgba(29,158,117,.22) 0%,transparent 55%),radial-gradient(ellipse at 85% 15%,rgba(93,202,165,.1) 0%,transparent 50%)}
+  .auth-panel-grid{position:absolute;inset:0;opacity:.04;background-image:linear-gradient(var(--teal-l) 1px,transparent 1px),linear-gradient(90deg,var(--teal-l) 1px,transparent 1px);background-size:40px 40px}
+  .auth-logo-mark{width:72px;height:72px;background:linear-gradient(135deg,var(--teal),var(--teal-l));border-radius:18px;display:flex;align-items:center;justify-content:center;margin-bottom:22px;box-shadow:0 8px 24px rgba(29,158,117,.35);position:relative;z-index:1}
+  .auth-logo-mark svg{width:40px;height:40px}
+  .auth-logo-name{font-family:'DM Serif Display',serif;font-size:38px;color:#fff;letter-spacing:-.5px;position:relative;z-index:1}
+  .auth-logo-name span{color:var(--teal-l)}
+  .auth-tagline{font-size:14px;color:rgba(255,255,255,.45);margin-top:6px;position:relative;z-index:1;font-weight:300}
+  .auth-features{margin-top:44px;display:flex;flex-direction:column;gap:16px;position:relative;z-index:1;width:100%;max-width:300px}
+  .auth-feat{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.6);font-size:13.5px}
+  .auth-feat-dot{width:28px;height:28px;border-radius:8px;background:rgba(29,158,117,.2);border:1px solid rgba(29,158,117,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px}
+  .auth-form-side{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:48px 40px;background:var(--warm)}
+  .auth-form-wrap{width:100%;max-width:400px}
+  .auth-title{font-family:'DM Serif Display',serif;font-size:30px;color:var(--ink);margin-bottom:6px}
+  .auth-sub{font-size:14px;color:var(--ink-l);margin-bottom:30px}
 
-  /* Layout */
+  /* ── App Layout ── */
   .app{display:flex;min-height:100vh}
-  .sidebar{width:var(--sidebar);background:var(--coal);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+  .sidebar{width:var(--sidebar);background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform var(--t)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199;backdrop-filter:blur(2px)}
   .main{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column}
-  .page-hdr{padding:28px 36px 22px;border-bottom:1px solid var(--stone-p);background:var(--warm);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
-  .page-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:var(--coal)}
-  .page-sub{font-size:13px;color:var(--stone);margin-top:2px}
-  .page-body{padding:28px 36px;flex:1}
+  .topbar{display:none;height:var(--header-h);background:var(--navy);align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.06)}
+  .topbar-logo{font-family:'DM Serif Display',serif;font-size:22px;color:#fff}
+  .topbar-logo span{color:var(--teal-l)}
+  .hamburger{background:none;border:none;cursor:pointer;padding:8px;color:rgba(255,255,255,.7);font-size:20px;border-radius:8px;transition:var(--t);line-height:1}
+  .hamburger:hover{background:rgba(255,255,255,.1);color:#fff}
+  .page-hdr{padding:24px 32px 20px;border-bottom:1px solid var(--mist-dd);background:var(--warm);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .page-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink)}
+  .page-sub{font-size:13px;color:var(--ink-l);margin-top:2px}
+  .page-body{padding:24px 32px;flex:1}
 
-  /* Cards */
-  .card{background:var(--warm);border:1px solid var(--stone-p);border-radius:var(--r);box-shadow:var(--sh)}
-  .card-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--stone-p);display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--coal)}
-  .card-body{padding:18px 22px}
+  /* ── Sidebar ── */
+  .sb-logo{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px}
+  .sb-logo-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--teal),var(--teal-l));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sb-logo-mark svg{width:22px;height:22px}
+  .sb-logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;letter-spacing:-.3px}
+  .sb-logo-text span{color:var(--teal-l)}
+  .sb-org{font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sb-nav{flex:1;padding:12px 10px;overflow-y:auto}
+  .sb-sec{font-size:10px;font-weight:600;color:rgba(255,255,255,.25);letter-spacing:1.2px;text-transform:uppercase;padding:10px 12px 5px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.45);font-size:13px;font-weight:400;cursor:pointer;transition:var(--t);border:none;background:none;width:100%;text-align:left;font-family:inherit}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+  .nav-item.active{background:rgba(29,158,117,.2);color:var(--teal-l);font-weight:500}
+  .nav-item.active .nav-icon{color:var(--teal-l)}
+  .nav-icon{font-size:16px;width:20px;text-align:center;opacity:.9;flex-shrink:0}
+  .sb-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.06)}
+  .user-pill{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:rgba(255,255,255,.05)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:white;flex-shrink:0;letter-spacing:.5px}
+  .u-name{font-size:12.5px;color:rgba(255,255,255,.85);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .u-role{font-size:10.5px;color:rgba(255,255,255,.3)}
+  .logout-btn{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:4px;transition:var(--t);flex-shrink:0}
+  .logout-btn:hover{color:var(--teal-l)}
 
-  /* Stat cards */
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:24px}
-  .stat-card{background:var(--warm);border:1px solid var(--stone-p);border-radius:var(--r);padding:18px 22px;box-shadow:var(--sh);transition:var(--t);position:relative;overflow:hidden;cursor:default}
-  .stat-card::after{content:'';position:absolute;top:0;right:0;width:70px;height:70px;background:var(--terra-p);border-radius:0 0 0 70px;opacity:.6}
+  /* ── Cards ── */
+  .card{background:var(--warm);border:1px solid var(--mist-d);border-radius:var(--r);box-shadow:var(--sh)}
+  .card-hdr{padding:16px 20px 12px;border-bottom:1px solid var(--mist-d);display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink)}
+  .card-body{padding:16px 20px}
+
+  /* ── Stat Cards ── */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:22px}
+  .stat-card{background:var(--warm);border:1px solid var(--mist-d);border-radius:var(--r);padding:16px 20px;box-shadow:var(--sh);transition:var(--t);position:relative;overflow:hidden;cursor:default}
+  .stat-card::before{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:var(--teal-p);border-radius:50%;opacity:.5}
   .stat-card:hover{transform:translateY(-2px);box-shadow:var(--sh-m)}
-  .stat-label{font-size:11px;font-weight:600;color:var(--stone);text-transform:uppercase;letter-spacing:.8px}
-  .stat-value{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--coal);margin-top:5px;line-height:1}
-  .stat-sub{font-size:12px;color:var(--stone);margin-top:5px}
-  .stat-icon{position:absolute;top:15px;right:15px;font-size:20px;z-index:1;opacity:.65}
+  .stat-label{font-size:10.5px;font-weight:600;color:var(--ink-l);text-transform:uppercase;letter-spacing:.9px}
+  .stat-value{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);margin-top:4px;line-height:1.1}
+  .stat-sub{font-size:11.5px;color:var(--ink-l);margin-top:4px}
+  .stat-icon{position:absolute;top:14px;right:14px;font-size:18px;z-index:1;opacity:.5}
 
-  /* Table */
-  .tbl-wrap{overflow-x:auto}
-  table{width:100%;border-collapse:collapse;font-size:13.5px}
-  th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:var(--stone);text-transform:uppercase;letter-spacing:.7px;background:var(--stone-p);white-space:nowrap}
-  td{padding:12px 14px;border-bottom:1px solid var(--stone-p);color:var(--coal-m);vertical-align:middle}
+  /* ── Table ── */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
+  th{padding:10px 14px;text-align:left;font-size:10.5px;font-weight:600;color:var(--ink-l);text-transform:uppercase;letter-spacing:.8px;background:var(--mist);white-space:nowrap}
+  td{padding:12px 14px;border-bottom:1px solid var(--mist-d);color:var(--ink-m);vertical-align:middle}
   tr:last-child td{border-bottom:none}
   tbody tr{transition:var(--t);cursor:default}
-  tbody tr:hover{background:var(--terra-p)}
+  tbody tr:hover{background:var(--mist)}
 
-  /* Badges */
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
+  /* ── Badges ── */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
   .b-due{background:var(--err-p);color:var(--err)}
   .b-partial{background:var(--warn-p);color:var(--warn)}
   .b-paid{background:var(--ok-p);color:var(--ok)}
   .b-active{background:var(--ok-p);color:var(--ok)}
-  .b-inactive{background:var(--stone-p);color:var(--stone)}
-  .b-discontinued{background:#F0E8F5;color:#7C4A8C}
-  .b-nodue{background:var(--stone-p);color:var(--stone)}
-  .b-owner{background:var(--terra-p);color:var(--terra-d)}
-  .b-cat{background:var(--warm);border:1px solid var(--stone-p);color:var(--coal-m)}
+  .b-inactive{background:var(--mist);color:var(--ink-l)}
+  .b-discontinued{background:#f3e8ff;color:#6b21a8}
+  .b-nodue{background:var(--mist);color:var(--ink-l)}
+  .b-owner{background:var(--teal-p);color:var(--teal-dd)}
+  .b-cat{background:var(--mist);border:1px solid var(--mist-dd);color:var(--ink-m)}
+  .b-warn{background:var(--warn-p);color:var(--warn)}
+  .b-ok{background:var(--ok-p);color:var(--ok)}
 
-  /* Buttons */
-  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-s);font-size:13.5px;font-weight:500;font-family:inherit;cursor:pointer;border:none;transition:var(--t);white-space:nowrap;text-decoration:none}
-  .btn-p{background:var(--terra);color:white}
-  .btn-p:hover:not(:disabled){background:var(--terra-d);transform:translateY(-1px);box-shadow:0 4px 12px rgba(196,105,79,.35)}
-  .btn-s{background:var(--stone-p);color:var(--coal-m)}
-  .btn-s:hover:not(:disabled){background:var(--stone-l)}
-  .btn-g{background:transparent;color:var(--stone);border:1px solid var(--stone-p)}
-  .btn-g:hover:not(:disabled){background:var(--stone-p);color:var(--coal)}
-  .btn-err{background:var(--err-p);color:var(--err);border:1px solid rgba(196,79,79,.2)}
+  /* ── Buttons ── */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r-s);font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;border:none;transition:var(--t);white-space:nowrap;text-decoration:none}
+  .btn-p{background:var(--teal);color:white}
+  .btn-p:hover:not(:disabled){background:var(--teal-d);box-shadow:0 4px 12px rgba(29,158,117,.35)}
+  .btn-s{background:var(--mist);color:var(--ink-m)}
+  .btn-s:hover:not(:disabled){background:var(--mist-dd)}
+  .btn-g{background:transparent;color:var(--ink-l);border:1px solid var(--mist-dd)}
+  .btn-g:hover:not(:disabled){background:var(--mist);color:var(--ink)}
+  .btn-err{background:var(--err-p);color:var(--err);border:1px solid rgba(192,57,43,.2)}
   .btn-err:hover:not(:disabled){background:var(--err);color:white}
-  .btn-warn{background:var(--warn-p);color:var(--warn);border:1px solid rgba(196,154,60,.2)}
+  .btn-warn{background:var(--warn-p);color:var(--warn);border:1px solid rgba(184,134,11,.2)}
   .btn-warn:hover:not(:disabled){background:var(--warn);color:white}
-  .btn-ok{background:var(--ok-p);color:var(--ok);border:1px solid rgba(74,140,111,.2)}
+  .btn-ok{background:var(--ok-p);color:var(--ok);border:1px solid rgba(15,110,86,.2)}
   .btn-ok:hover:not(:disabled){background:var(--ok);color:white}
-  .btn-sm{padding:5px 11px;font-size:12.5px}
-  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+  .btn-sm{padding:5px 11px;font-size:12px}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
-  /* Forms */
-  .fg{margin-bottom:15px}
-  .fl{display:block;font-size:12.5px;font-weight:500;color:var(--coal-m);margin-bottom:5px}
-  .fi,.fs,.fta{width:100%;padding:9px 13px;border:1.5px solid var(--stone-p);border-radius:var(--r-s);font-size:13.5px;font-family:inherit;color:var(--coal);background:var(--warm);transition:var(--t);outline:none}
-  .fi:focus,.fs:focus,.fta:focus{border-color:var(--terra);box-shadow:0 0 0 3px rgba(196,105,79,.1)}
+  /* ── Forms ── */
+  .fg{margin-bottom:14px}
+  .fl{display:block;font-size:12px;font-weight:500;color:var(--ink-m);margin-bottom:5px}
+  .fi,.fs,.fta{width:100%;padding:9px 13px;border:1.5px solid var(--mist-d);border-radius:var(--r-s);font-size:13.5px;font-family:inherit;color:var(--ink);background:var(--warm);transition:var(--t);outline:none}
+  .fi:focus,.fs:focus,.fta:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
   .fta{resize:vertical;min-height:72px}
   .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .frow3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
   .ferr{font-size:12px;color:var(--err);margin-top:4px}
-  .fsec{font-size:11px;color:var(--stone);margin-top:4px}
+  .fsec{font-size:11px;color:var(--ink-l);margin-top:4px}
 
-  /* Modal */
-  .backdrop{position:fixed;inset:0;background:rgba(44,36,32,.5);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease}
-  .modal{background:var(--warm);border-radius:var(--r);box-shadow:var(--sh-l);width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:slideUp .22s cubic-bezier(.34,1.56,.64,1)}
-  .modal-lg{max-width:680px}
-  .modal-hdr{padding:22px 26px 16px;border-bottom:1px solid var(--stone-p);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--warm);z-index:1}
-  .modal-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--coal)}
-  .modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--stone);padding:3px 6px;border-radius:5px;transition:var(--t);line-height:1}
-  .modal-x:hover{background:var(--stone-p);color:var(--coal)}
-  .modal-body{padding:22px 26px}
-  .modal-ftr{padding:14px 26px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--stone-p)}
+  /* ── Modal ── */
+  .backdrop{position:fixed;inset:0;background:rgba(10,31,26,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .15s ease}
+  .modal{background:var(--warm);border-radius:var(--r);box-shadow:var(--sh-l);width:100%;max-width:520px;max-height:94vh;overflow-y:auto;animation:slideUp .22s cubic-bezier(.34,1.56,.64,1)}
+  .modal-lg{max-width:660px}
+  .modal-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--mist-d);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--warm);z-index:1}
+  .modal-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink)}
+  .modal-x{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-l);padding:3px 6px;border-radius:5px;transition:var(--t);line-height:1}
+  .modal-x:hover{background:var(--mist);color:var(--ink)}
+  .modal-body{padding:20px 24px}
+  .modal-ftr{padding:12px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--mist-d)}
 
-  /* Sidebar */
-  .sb-logo{padding:24px 22px 18px;border-bottom:1px solid rgba(255,255,255,.06)}
-  .sb-logo-text{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--cream);letter-spacing:-.5px}
-  .sb-logo-text span{color:var(--terra)}
-  .sb-org{font-size:11.5px;color:var(--stone);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sb-nav{flex:1;padding:14px 10px;overflow-y:auto}
-  .sb-sec{font-size:10.5px;font-weight:600;color:var(--stone);letter-spacing:1px;text-transform:uppercase;padding:10px 12px 5px}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;color:var(--stone-l);font-size:13.5px;font-weight:400;cursor:pointer;transition:var(--t);border:none;background:none;width:100%;text-align:left;font-family:inherit}
-  .nav-item:hover{background:rgba(255,255,255,.07);color:var(--cream)}
-  .nav-item.active{background:rgba(196,105,79,.2);color:var(--terra-l)}
-  .nav-icon{font-size:15px;width:19px;text-align:center;opacity:.85}
-  .sb-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.06)}
-  .user-pill{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;background:rgba(255,255,255,.05)}
-  .avatar{width:30px;height:30px;border-radius:50%;background:var(--terra);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:white;flex-shrink:0}
-  .u-name{font-size:13px;color:var(--cream);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .u-role{font-size:10.5px;color:var(--stone)}
-  .logout-btn{margin-left:auto;background:none;border:none;color:var(--stone);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px;transition:var(--t)}
-  .logout-btn:hover{color:var(--terra-l)}
-
-  /* Misc */
-  .divider{height:1px;background:var(--stone-p);margin:18px 0}
+  /* ── Misc ── */
+  .divider{height:1px;background:var(--mist-d);margin:16px 0}
   .loading{display:flex;align-items:center;justify-content:center;padding:56px}
-  .spinner{width:34px;height:34px;border:3px solid var(--stone-p);border-top-color:var(--terra);border-radius:50%;animation:spin .7s linear infinite}
-  .empty{text-align:center;padding:56px 24px;color:var(--stone)}
-  .empty-icon{font-size:44px;opacity:.35;display:block;margin-bottom:10px}
-  .empty-title{font-family:'Playfair Display',serif;font-size:17px;color:var(--coal-m);margin-bottom:5px}
-  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-  .search-wrap{position:relative;flex:1;min-width:200px}
-  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--stone);pointer-events:none}
+  .spinner{width:32px;height:32px;border:3px solid var(--mist-d);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
+  .empty{text-align:center;padding:52px 24px;color:var(--ink-l)}
+  .empty-icon{font-size:40px;opacity:.3;display:block;margin-bottom:10px}
+  .empty-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink-m);margin-bottom:5px}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  .search-wrap{position:relative;flex:1;min-width:180px}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-l);pointer-events:none;font-size:14px}
   .pl{padding-left:34px!important}
-  .amount{font-family:'Playfair Display',serif;font-weight:600}
-  .muted{color:var(--stone);font-size:12.5px}
+  .amount{font-family:'DM Serif Display',serif;font-weight:400}
+  .muted{color:var(--ink-l);font-size:12.5px}
   .fw5{font-weight:500}
   .fw6{font-weight:600}
   .flex{display:flex}
@@ -223,62 +237,105 @@ const CSS = `
   .mb3{margin-bottom:14px}
   .w100{width:100%;justify-content:center;padding:11px}
 
-  /* Upcoming dues alert strip */
-  .upcoming-strip{background:var(--warn-p);border:1px solid rgba(196,154,60,.25);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+  /* ── Upcoming strip ── */
+  .upcoming-strip{background:var(--warn-p);border:1px solid rgba(184,134,11,.2);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:12px}
   .upcoming-dot{width:8px;height:8px;border-radius:50%;background:var(--warn);animation:pulse 1.5s ease infinite;flex-shrink:0}
 
-  /* Member detail panel */
-  .detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--stone-p)}
+  /* ── Detail row ── */
+  .detail-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--mist-d)}
   .detail-row:last-child{border-bottom:none}
-  .detail-lbl{font-size:11.5px;font-weight:600;color:var(--stone);text-transform:uppercase;letter-spacing:.6px;width:130px;flex-shrink:0;padding-top:2px}
-  .detail-val{font-size:13.5px;color:var(--coal-m)}
+  .detail-lbl{font-size:11px;font-weight:600;color:var(--ink-l);text-transform:uppercase;letter-spacing:.7px;width:120px;flex-shrink:0;padding-top:2px}
+  .detail-val{font-size:13.5px;color:var(--ink-m)}
 
-  /* Category card */
-  .cat-card{background:var(--warm);border:1.5px solid var(--stone-p);border-radius:var(--r);padding:18px 20px;transition:var(--t);position:relative}
-  .cat-card:hover{border-color:var(--terra);box-shadow:var(--sh-m)}
-  .cat-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--coal);margin-bottom:6px}
-  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
-  .cat-stat{text-align:center;padding:9px;background:var(--stone-p);border-radius:7px}
-  .cat-stat-val{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--coal)}
-  .cat-stat-lbl{font-size:10.5px;color:var(--stone);margin-top:2px}
+  /* ── Category card ── */
+  .cat-card{background:var(--warm);border:1.5px solid var(--mist-d);border-radius:var(--r);padding:18px 20px;transition:var(--t);position:relative}
+  .cat-card:hover{border-color:var(--teal);box-shadow:var(--sh-m)}
+  .cat-name{font-family:'DM Serif Display',serif;font-size:17px;color:var(--ink);margin-bottom:6px}
+  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+  .cat-stat{text-align:center;padding:9px;background:var(--mist);border-radius:7px}
+  .cat-stat-val{font-family:'DM Serif Display',serif;font-size:15px;color:var(--ink)}
+  .cat-stat-lbl{font-size:10px;color:var(--ink-l);margin-top:2px}
 
-  /* Due alert card */
-  .due-card{background:var(--warm);border:1.5px solid var(--stone-p);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;transition:var(--t)}
-  .due-card:hover{border-color:var(--terra);box-shadow:var(--sh)}
-  .due-card.urgent{border-color:rgba(196,79,79,.3);background:var(--err-p)}
-  .due-card.partial{border-color:rgba(196,154,60,.3);background:var(--warn-p)}
-  .due-card.paid{border-color:rgba(74,140,111,.3);background:var(--ok-p);opacity:.75}
+  /* ── Due card ── */
+  .due-card{background:var(--warm);border:1.5px solid var(--mist-d);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;transition:var(--t)}
+  .due-card:hover{border-color:var(--teal);box-shadow:var(--sh)}
+  .due-card.urgent{border-color:rgba(192,57,43,.3);background:var(--err-p)}
+  .due-card.partial{border-color:rgba(184,134,11,.25);background:var(--warn-p)}
+  .due-card.paid{border-color:rgba(15,110,86,.25);background:var(--ok-p);opacity:.75}
 
-  /* Progress bar */
-  .progress-track{height:6px;background:var(--stone-p);border-radius:3px;overflow:hidden;margin-top:5px}
-  .progress-fill{height:100%;background:var(--terra);border-radius:3px;transition:width .4s ease}
+  /* ── Progress bar ── */
+  .progress-track{height:6px;background:var(--mist-d);border-radius:3px;overflow:hidden;margin-top:5px}
+  .progress-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .4s ease}
 
-  /* Tabs */
-  .tabs{display:flex;gap:2px;border-bottom:2px solid var(--stone-p);margin-bottom:20px}
-  .tab{padding:9px 16px;font-size:13.5px;font-weight:500;color:var(--stone);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--t)}
-  .tab:hover{color:var(--coal)}
-  .tab.active{color:var(--terra);border-bottom-color:var(--terra);font-weight:600}
+  /* ── Tabs ── */
+  .tabs{display:flex;gap:2px;border-bottom:2px solid var(--mist-d);margin-bottom:20px;overflow-x:auto}
+  .tab{padding:9px 16px;font-size:13px;font-weight:500;color:var(--ink-l);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--t);white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--teal-d);border-bottom-color:var(--teal);font-weight:600}
 
-  /* Info box */
-  .info-box{padding:11px 14px;background:var(--terra-p);border:1px solid rgba(196,105,79,.2);border-radius:var(--r-s);font-size:12.5px;color:var(--terra-d)}
-  .warn-box{padding:11px 14px;background:var(--warn-p);border:1px solid rgba(196,154,60,.2);border-radius:var(--r-s);font-size:12.5px;color:var(--warn)}
+  /* ── Info / Warn boxes ── */
+  .info-box{padding:10px 14px;background:var(--teal-p);border:1px solid rgba(29,158,117,.2);border-radius:var(--r-s);font-size:12.5px;color:var(--teal-dd)}
+  .warn-box{padding:10px 14px;background:var(--warn-p);border:1px solid rgba(184,134,11,.2);border-radius:var(--r-s);font-size:12.5px;color:var(--warn)}
 
+  /* ────────── RESPONSIVE ────────── */
+  @media(max-width:900px){
+    :root{--sidebar:240px}
+  }
   @media(max-width:768px){
     .auth-wrap{grid-template-columns:1fr}
     .auth-panel{display:none}
-    .sidebar{display:none}
+    .auth-form-side{padding:32px 24px;min-height:100vh}
+    .sidebar{transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .sidebar-overlay{display:block}
+    .sidebar-overlay.hidden{display:none}
     .main{margin-left:0}
+    .topbar{display:flex}
     .page-body{padding:16px}
-    .page-hdr{padding:16px}
+    .page-hdr{padding:16px;gap:10px}
+    .page-title{font-size:22px}
     .frow,.frow3{grid-template-columns:1fr}
+    .stat-grid{grid-template-columns:1fr 1fr;gap:10px}
+    .stat-value{font-size:22px}
+    .page-hdr .btn{font-size:12px;padding:7px 12px}
+    .modal{margin:0;max-height:96vh;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;max-width:100%}
+    .backdrop{align-items:flex-end;padding:0}
+    .card-body{padding:14px 16px}
+    .card-hdr{padding:14px 16px 10px}
+    .modal-body{padding:16px 18px}
+    .modal-hdr{padding:16px 18px 14px}
+    .modal-ftr{padding:12px 18px 20px;flex-wrap:wrap}
+    .modal-ftr .btn{flex:1;justify-content:center}
+    table{min-width:460px}
+    .page-body .flex.gap3{flex-direction:column}
+    .page-body .card.flex1,.page-body .card[style*="flex: 0"]{min-width:unset!important;flex:unset!important;width:100%}
+  }
+  @media(max-width:480px){
+    .stat-grid{grid-template-columns:1fr}
+    .toolbar{gap:8px}
+    .toolbar .fs{flex:1}
+    .frow3{grid-template-columns:1fr}
+    .auth-form-side{padding:24px 16px}
   }
 `;
 
-// ─── Shared Components ────────────────────────────────────────────────────────
+// ── Logo SVG ──
+const HaltoLogo = ({ size = 22, light = false }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+    <rect x="10" y="10" width="28" height="80" rx="4" fill={light ? "#fff" : "#fff"}/>
+    <rect x="62" y="10" width="28" height="80" rx="4" fill={light ? "#9FE1CB" : "#9FE1CB"}/>
+    <path d="M10 55 L50 30 L90 55" stroke={light ? "#fff" : "#5DCAA5"} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+  </svg>
+);
+
 function Spinner() { return <div className="loading"><div className="spinner" /></div>; }
 
 function Modal({ open, onClose, title, children, footer, size = "" }) {
   if (!open) return null;
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
   return (
     <div className="backdrop" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={`modal ${size}`}>
@@ -303,12 +360,12 @@ function Confirm({ open, title, message, onConfirm, onCancel, danger = false }) 
   return (
     <Modal open={open} onClose={onCancel} title={title}
       footer={<><button className="btn btn-g" onClick={onCancel}>Cancel</button><button className={`btn ${danger ? "btn-err" : "btn-p"}`} onClick={onConfirm}>{danger ? "Confirm" : "OK"}</button></>}>
-      <p style={{ fontSize: 14, color: "var(--coal-m)", lineHeight: 1.6 }}>{message}</p>
+      <p style={{ fontSize: 14, color: "var(--ink-m)", lineHeight: 1.6 }}>{message}</p>
     </Modal>
   );
 }
 
-// ─── Auth Page ────────────────────────────────────────────────────────────────
+// ── Auth Page ──
 function AuthPage({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({ email: "", password: "", fullName: "", phone: "", organizationName: "", businessType: "1" });
@@ -330,16 +387,28 @@ function AuthPage({ onLogin }) {
     } catch (e) { setError(e.message); } finally { setLoading(false); }
   }
 
+  const features = [
+    { icon: "👥", text: "Manage members with full details" },
+    { icon: "🏷", text: "Categories with auto-calculated dues" },
+    { icon: "🔔", text: "10-day ahead payment alerts" },
+    { icon: "💳", text: "Partial payments & tracking" },
+  ];
+
   return (
     <div className="auth-wrap">
       <div className="auth-panel">
-        <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-          <div className="auth-logo">H<span>.</span>alto</div>
-          <div style={{ color: "var(--stone-l)", fontSize: 15, marginTop: 10, fontWeight: 300 }}>Hostel & Business Management</div>
-          <div style={{ marginTop: 40, display: "flex", flexDirection: "column", gap: 14 }}>
-            {["Manage members with full details", "Categories with auto-calculated dues", "10-day ahead payment alerts", "Partial payments & discontinuation tracking"].map(f => (
-              <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--stone-l)", fontSize: 13.5 }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--terra)", flexShrink: 0 }} />{f}
+        <div className="auth-panel-grid" />
+        <div style={{ position: "relative", zIndex: 1, textAlign: "center", width: "100%", maxWidth: 320 }}>
+          <div className="auth-logo-mark" style={{ margin: "0 auto 22px" }}>
+            <HaltoLogo size={40} light />
+          </div>
+          <div className="auth-logo-name">Halto<span>.</span></div>
+          <div className="auth-tagline">Hostel & Business Management</div>
+          <div className="auth-features">
+            {features.map(f => (
+              <div key={f.text} className="auth-feat">
+                <div className="auth-feat-dot">{f.icon}</div>
+                {f.text}
               </div>
             ))}
           </div>
@@ -347,8 +416,14 @@ function AuthPage({ onLogin }) {
       </div>
       <div className="auth-form-side">
         <div className="auth-form-wrap">
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 30, fontWeight: 600, color: "var(--coal)", marginBottom: 6 }}>{mode === "login" ? "Welcome back" : "Get started"}</div>
-          <div style={{ color: "var(--stone)", fontSize: 14, marginBottom: 30 }}>{mode === "login" ? "Sign in to your account" : "Create your organisation"}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+            <div style={{ width: 36, height: 36, background: "linear-gradient(135deg,var(--teal),var(--teal-l))", borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <HaltoLogo size={20} />
+            </div>
+            <span style={{ fontFamily: "'DM Serif Display',serif", fontSize: 18, color: "var(--ink)" }}>Halto<span style={{ color: "var(--teal)" }}>.</span></span>
+          </div>
+          <div className="auth-title">{mode === "login" ? "Welcome back" : "Get started"}</div>
+          <div className="auth-sub">{mode === "login" ? "Sign in to your account" : "Create your organisation"}</div>
           <form onSubmit={submit}>
             {mode === "register" && <>
               <div className="fg"><label className="fl">Full Name</label><input className="fi" value={form.fullName} onChange={set("fullName")} placeholder="Rajesh Kumar" required /></div>
@@ -365,10 +440,10 @@ function AuthPage({ onLogin }) {
             <div className="fg"><label className="fl">Email</label><input className="fi" type="email" value={form.email} onChange={set("email")} placeholder="you@example.com" required /></div>
             <div className="fg"><label className="fl">Password</label><input className="fi" type="password" value={form.password} onChange={set("password")} placeholder="••••••••" required /></div>
             {error && <div className="ferr mb2">⚠ {error}</div>}
-            <button className="btn btn-p w100" disabled={loading}>{loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}</button>
+            <button className="btn btn-p w100" style={{ marginTop: 4 }} disabled={loading}>{loading ? "Please wait…" : mode === "login" ? "Sign In" : "Create Account"}</button>
           </form>
-          <div style={{ marginTop: 20, textAlign: "center", fontSize: 13.5, color: "var(--stone)" }}>
-            {mode === "login" ? <>New? <button style={{ background: "none", border: "none", color: "var(--terra)", fontWeight: 600, cursor: "pointer", fontSize: 13.5, fontFamily: "inherit" }} onClick={() => setMode("register")}>Create account</button></> : <>Have account? <button style={{ background: "none", border: "none", color: "var(--terra)", fontWeight: 600, cursor: "pointer", fontSize: 13.5, fontFamily: "inherit" }} onClick={() => setMode("login")}>Sign in</button></>}
+          <div style={{ marginTop: 20, textAlign: "center", fontSize: 13.5, color: "var(--ink-l)" }}>
+            {mode === "login" ? <>New? <button style={{ background: "none", border: "none", color: "var(--teal)", fontWeight: 600, cursor: "pointer", fontSize: 13.5, fontFamily: "inherit" }} onClick={() => setMode("register")}>Create account</button></> : <>Have account? <button style={{ background: "none", border: "none", color: "var(--teal)", fontWeight: 600, cursor: "pointer", fontSize: 13.5, fontFamily: "inherit" }} onClick={() => setMode("login")}>Sign in</button></>}
           </div>
         </div>
       </div>
@@ -376,7 +451,7 @@ function AuthPage({ onLogin }) {
   );
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+// ── Dashboard ──
 function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [monthly, setMonthly] = useState([]);
@@ -400,7 +475,6 @@ function Dashboard() {
   useEffect(() => { load(); }, [load]);
 
   const urgentCount = upcoming.filter(u => !u.status || u.status === "Due").length;
-
   if (loading) return <Spinner />;
 
   return (
@@ -417,11 +491,10 @@ function Dashboard() {
             <div className="upcoming-dot" />
             <div style={{ flex: 1 }}>
               <span style={{ fontWeight: 600, color: "var(--warn)" }}>{urgentCount} members</span>
-              <span style={{ color: "var(--coal-m)", fontSize: 13.5 }}> have dues coming up this period. See below to collect.</span>
+              <span style={{ color: "var(--ink-m)", fontSize: 13.5 }}> have dues coming up this period.</span>
             </div>
           </div>
         )}
-
         <div className="stat-grid">
           {[
             { label: "Total Due", value: fmt(summary?.totalDueAmount), sub: "this period", icon: "◌" },
@@ -439,43 +512,40 @@ function Dashboard() {
         </div>
 
         <div className="flex gap3" style={{ flexWrap: "wrap" }}>
-          {/* Monthly chart */}
-          <div className="card flex1" style={{ minWidth: 300 }}>
+          <div className="card flex1" style={{ minWidth: 280 }}>
             <div className="card-hdr"><span className="card-title">Monthly Collection {now.getFullYear()}</span></div>
             <div className="card-body">
               {monthly.filter(m => m.totalDue > 0).length === 0
-                ? <div style={{ textAlign: "center", padding: 20, color: "var(--stone)", fontSize: 13 }}>No data yet</div>
+                ? <div style={{ textAlign: "center", padding: 20, color: "var(--ink-l)", fontSize: 13 }}>No data yet</div>
                 : monthly.filter(m => m.totalDue > 0).map(m => (
                   <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 11.5, color: "var(--stone)", width: 30, textAlign: "right", flexShrink: 0 }}>{MONTHS[m.month - 1]}</span>
-                    <div style={{ flex: 1, height: 26, background: "var(--stone-p)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
-                      <div style={{ position: "absolute", inset: 0, background: "var(--terra-p)", borderRadius: 4 }} />
-                      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${(m.totalPaid / Math.max(m.totalDue, 1)) * 100}%`, background: "var(--terra)", borderRadius: 4, transition: "width .6s ease" }} />
+                    <span style={{ fontSize: 11.5, color: "var(--ink-l)", width: 28, textAlign: "right", flexShrink: 0 }}>{MONTHS[m.month - 1]}</span>
+                    <div style={{ flex: 1, height: 22, background: "var(--mist-d)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+                      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${(m.totalPaid / Math.max(m.totalDue, 1)) * 100}%`, background: "var(--teal)", borderRadius: 4, transition: "width .6s ease", opacity: .85 }} />
                     </div>
-                    <span style={{ fontSize: 11.5, color: "var(--coal-m)", width: 64, flexShrink: 0, textAlign: "right", fontWeight: 500 }}>{fmt(m.totalPaid)}</span>
+                    <span style={{ fontSize: 11.5, color: "var(--ink-m)", width: 60, flexShrink: 0, textAlign: "right", fontWeight: 500 }}>{fmt(m.totalPaid)}</span>
                   </div>
                 ))
               }
             </div>
           </div>
 
-          {/* Upcoming dues */}
-          <div className="card" style={{ flex: "0 0 380px", minWidth: 300 }}>
+          <div className="card" style={{ flex: "0 0 360px", minWidth: 280 }}>
             <div className="card-hdr">
               <span className="card-title">Upcoming Dues</span>
               <span className="badge b-warn" style={{ fontSize: 11 }}>{MONTHS[upcoming[0]?.dueMonth - 1] ?? MONTHS[now.getMonth()]} {upcoming[0]?.dueYear ?? now.getFullYear()}</span>
             </div>
-            <div style={{ maxHeight: 380, overflowY: "auto" }}>
+            <div style={{ maxHeight: 340, overflowY: "auto" }}>
               {upcoming.length === 0
-                ? <div className="empty" style={{ padding: 32 }}><span className="empty-icon">📋</span><p>No upcoming dues</p></div>
+                ? <div className="empty" style={{ padding: 28 }}><span className="empty-icon">📋</span><p>No upcoming dues</p></div>
                 : upcoming.map(u => (
-                  <div key={u.memberId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", borderBottom: "1px solid var(--stone-p)" }}>
-                    <div className="avatar" style={{ background: u.status === "Paid" ? "var(--ok)" : u.status === "Partial" ? "var(--warn)" : "var(--terra)" }}>
+                  <div key={u.memberId} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 16px", borderBottom: "1px solid var(--mist-d)" }}>
+                    <div className="avatar" style={{ background: u.status === "Paid" ? "var(--ok)" : u.status === "Partial" ? "var(--warn)" : "var(--teal)" }}>
                       {initials(u.memberName)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{u.memberName}</div>
-                      <div style={{ fontSize: 12, color: "var(--stone)" }}>
+                      <div style={{ fontSize: 12, color: "var(--ink-l)" }}>
                         {u.categoryName && <span style={{ marginRight: 6 }}>{u.categoryName}</span>}
                         <span className="amount" style={{ fontSize: 13 }}>{fmt(u.balance > 0 ? u.balance : u.amount)}</span>
                       </div>
@@ -499,20 +569,19 @@ function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
 
-      {payModal && (
-        <QuickPayModal
-          due={payModal}
-          onClose={() => setPayModal(null)}
-          onSaved={() => { setPayModal(null); load(); toast("Payment recorded!", "success"); }}
-        />
-      )}
+        {payModal && (
+          <QuickPayModal
+            due={payModal}
+            onClose={() => setPayModal(null)}
+            onSaved={() => { setPayModal(null); load(); toast("Payment recorded!", "success"); }}
+          />
+        )}
+      </div>
     </>
   );
 }
 
-// Quick pay from dashboard upcoming
 function QuickPayModal({ due, onClose, onSaved }) {
   const [amount, setAmount] = useState(due.balance > 0 ? String(due.balance) : String(due.amount));
   const [method, setMethod] = useState("2");
@@ -533,9 +602,9 @@ function QuickPayModal({ due, onClose, onSaved }) {
       footer={<><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={submit} disabled={loading}>Save Payment</button></>}>
       <div className="frow3 mb3">
         {[["Total Due", fmt(due.amount)], ["Paid", fmt(due.totalPaid)], ["Balance", fmt(due.balance)]].map(([l, v]) => (
-          <div key={l} style={{ textAlign: "center", padding: "11px 8px", background: "var(--stone-p)", borderRadius: 8 }}>
-            <div style={{ fontSize: 11, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".5px" }}>{l}</div>
-            <div className="amount" style={{ fontSize: 16 }}>{v}</div>
+          <div key={l} style={{ textAlign: "center", padding: "10px 6px", background: "var(--mist)", borderRadius: 8 }}>
+            <div style={{ fontSize: 10.5, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".5px" }}>{l}</div>
+            <div className="amount" style={{ fontSize: 15 }}>{v}</div>
           </div>
         ))}
       </div>
@@ -553,7 +622,7 @@ function QuickPayModal({ due, onClose, onSaved }) {
   );
 }
 
-// ─── CATEGORIES ───────────────────────────────────────────────────────────────
+// ── Categories ──
 function Categories({ user }) {
   const [cats, setCats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -588,7 +657,7 @@ function Categories({ user }) {
       <div className="page-body">
         {loading ? <Spinner /> : cats.length === 0
           ? <div className="empty"><span className="empty-icon">🏷</span><div className="empty-title">No categories yet</div><p style={{ fontSize: 13 }}>Create categories like "4 Share with Food" to assign members</p></div>
-          : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+          : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
             {cats.map(c => (
               <div key={c.id} className="cat-card">
                 <div className="flex aic jcb mb2">
@@ -615,11 +684,10 @@ function Categories({ user }) {
           </div>
         }
       </div>
-
       <CategoryModal open={showAdd} cat={null} onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load(); toast("Category created", "success"); }} />
       <CategoryModal open={!!editCat} cat={editCat} onClose={() => setEditCat(null)} onSaved={() => { setEditCat(null); load(); toast("Category updated", "success"); }} />
       <Confirm open={!!confirm} title="Delete Category" danger
-        message={`Delete "${confirm?.name}"? This can't be undone. Categories with active members cannot be deleted.`}
+        message={`Delete "${confirm?.name}"? This can't be undone.`}
         onConfirm={() => deleteCat(confirm)} onCancel={() => setConfirm(null)} />
     </>
   );
@@ -657,13 +725,13 @@ function CategoryModal({ open, cat, onClose, onSaved }) {
         <div className="fg"><label className="fl">Admission Fee (₹)</label><input className="fi" type="number" value={form.admissionFee} onChange={set("admissionFee")} placeholder="2000" /><div className="fsec">Non-refundable</div></div>
         <div className="fg"><label className="fl">Deposit (₹)</label><input className="fi" type="number" value={form.depositAmount} onChange={set("depositAmount")} placeholder="5000" /><div className="fsec">Refundable</div></div>
       </div>
-      <div className="info-box mt2">Monthly rent will be used to auto-calculate dues when generating for this category.</div>
+      <div className="info-box mt2">Monthly rent will be used to auto-calculate dues for this category.</div>
       {error && <div className="ferr mt2">⚠ {error}</div>}
     </Modal>
   );
 }
 
-// ─── MEMBERS ─────────────────────────────────────────────────────────────────
+// ── Members ──
 function Members({ user }) {
   const [members, setMembers] = useState([]);
   const [cats, setCats] = useState([]);
@@ -705,7 +773,7 @@ function Members({ user }) {
       <div className="page-body">
         <div className="toolbar">
           <div className="search-wrap">
-            <span className="search-icon" style={{ fontSize: 14 }}>⌕</span>
+            <span className="search-icon">⌕</span>
             <input className="fi pl" placeholder="Search name, phone, email…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
           </div>
           <select className="fs" style={{ width: 140 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
@@ -725,9 +793,9 @@ function Members({ user }) {
                   <tr key={m.id}>
                     <td>
                       <div className="flex aic gap2">
-                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 11, flexShrink: 0, background: m.discontinuedAt ? "#7C4A8C" : m.isActive ? "var(--terra)" : "var(--stone)" }}>{initials(m.fullName)}</div>
+                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 11, flexShrink: 0, background: m.discontinuedAt ? "#6b21a8" : m.isActive ? "var(--teal)" : "var(--ink-l)" }}>{initials(m.fullName)}</div>
                         <div>
-                          <div className="fw5" style={{ color: "var(--coal)" }}>{m.fullName}</div>
+                          <div className="fw5" style={{ color: "var(--ink)" }}>{m.fullName}</div>
                           <div className="muted">{m.email || "—"}</div>
                         </div>
                       </div>
@@ -740,7 +808,7 @@ function Members({ user }) {
                       <div className="flex gap2">
                         <button className="btn btn-g btn-sm" onClick={() => setViewMember(m)}>View</button>
                         <button className="btn btn-s btn-sm" onClick={() => setEditMember(m)}>Edit</button>
-                        {isOwner && m.isActive && !m.discontinuedAt && <button className="btn btn-err btn-sm" onClick={() => setDiscontinueMember(m)}>Discontinue</button>}
+                        {isOwner && m.isActive && !m.discontinuedAt && <button className="btn btn-err btn-sm" onClick={() => setDiscontinueMember(m)}>Stop</button>}
                       </div>
                     </td>
                   </tr>
@@ -750,7 +818,6 @@ function Members({ user }) {
           }
         </div>
       </div>
-
       <MemberFormModal open={showAdd} member={null} cats={cats} onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load(); toast("Member added!", "success"); }} />
       <MemberFormModal open={!!editMember} member={editMember} cats={cats} onClose={() => setEditMember(null)} onSaved={() => { setEditMember(null); load(); toast("Member updated", "success"); }} />
       {viewMember && <MemberDetailModal member={viewMember} cats={cats} isOwner={isOwner} onClose={() => setViewMember(null)} onEdited={() => { setViewMember(null); load(); }} />}
@@ -777,7 +844,6 @@ function MemberFormModal({ open, member, cats, onClose, onSaved }) {
     }
   }, [open, member]);
 
-  // Auto-fill rent from category
   const selectedCat = cats.find(c => c.id === form.categoryId);
 
   async function submit() {
@@ -797,8 +863,7 @@ function MemberFormModal({ open, member, cats, onClose, onSaved }) {
   return (
     <Modal open={open} onClose={onClose} title={member ? `Edit — ${member.fullName}` : "Add New Member"} size="modal-lg"
       footer={<><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={submit} disabled={loading}>{member ? "Save Changes" : "Add Member"}</button></>}>
-
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Personal Details</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Personal Details</div>
       <div className="frow">
         <div className="fg"><label className="fl">Full Name *</label><input className="fi" value={form.fullName} onChange={set("fullName")} placeholder="Suresh Reddy" /></div>
         <div className="fg"><label className="fl">Designation / Role</label><input className="fi" value={form.designation} onChange={set("designation")} placeholder="Student, Working Professional…" /></div>
@@ -816,9 +881,8 @@ function MemberFormModal({ open, member, cats, onClose, onSaved }) {
         </div>
         <div className="fg"><label className="fl">Join Date</label><input className="fi" type="date" value={form.joinedAt} onChange={set("joinedAt")} /></div>
       </div>
-
       <div className="divider" />
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Category & Accommodation</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Category & Accommodation</div>
       <div className="fg">
         <label className="fl">Category</label>
         <select className="fs" value={form.categoryId} onChange={set("categoryId")}>
@@ -872,12 +936,12 @@ function MemberDetailModal({ member, cats, isOwner, onClose, onEdited }) {
   return (
     <Modal open onClose={onClose} title="Member Profile" size="modal-lg"
       footer={<button className="btn btn-g" onClick={onClose}>Close</button>}>
-      <div className="flex aic gap3 mb3" style={{ paddingBottom: 16, borderBottom: "1px solid var(--stone-p)" }}>
-        <div className="avatar" style={{ width: 52, height: 52, fontSize: 18, flexShrink: 0, background: member.discontinuedAt ? "#7C4A8C" : member.isActive ? "var(--terra)" : "var(--stone)" }}>
+      <div className="flex aic gap3 mb3" style={{ paddingBottom: 16, borderBottom: "1px solid var(--mist-d)" }}>
+        <div className="avatar" style={{ width: 52, height: 52, fontSize: 18, flexShrink: 0, background: member.discontinuedAt ? "#6b21a8" : member.isActive ? "var(--teal)" : "var(--ink-l)" }}>
           {initials(member.fullName)}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 600 }}>{member.fullName}</div>
+          <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 20 }}>{member.fullName}</div>
           <div className="flex aic gap2 mt1">
             <StatusBadge status={member.discontinuedAt ? "Discontinued" : member.isActive ? "Active" : "Inactive"} />
             {member.categoryName && <span className="badge b-cat">{member.categoryName}</span>}
@@ -885,21 +949,19 @@ function MemberDetailModal({ member, cats, isOwner, onClose, onEdited }) {
           </div>
         </div>
       </div>
-
       {rows.map(([label, val]) => val && (
         <div key={label} className="detail-row">
           <span className="detail-lbl">{label}</span>
           <span className="detail-val">{val}</span>
         </div>
       ))}
-
       {isOwner && !member.hasLogin && !member.discontinuedAt && (
         <div className="mt3">
           <div className="divider" />
           {!createLogin
             ? <button className="btn btn-g btn-sm" onClick={() => setCreateLogin(true)}>🔑 Create Portal Login</button>
             : <>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--coal-m)", marginBottom: 12 }}>Create Login Credentials</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-m)", marginBottom: 12 }}>Create Login Credentials</div>
               <div className="frow">
                 <div className="fg"><label className="fl">Login Email</label><input className="fi" type="email" value={loginForm.email} onChange={e => setLoginForm(f => ({ ...f, email: e.target.value }))} /></div>
                 <div className="fg"><label className="fl">Password</label><input className="fi" type="password" value={loginForm.password} onChange={e => setLoginForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 6 chars" /></div>
@@ -933,16 +995,14 @@ function DiscontinueModal({ member, onClose, onSaved }) {
   return (
     <Modal open onClose={onClose} title={`Discontinue — ${member.fullName}`}
       footer={<><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-err" onClick={submit} disabled={loading}>Discontinue Member</button></>}>
-      <div className="warn-box mb3">
-        ⚠ This will mark the member as discontinued. They will no longer appear in active members or have dues generated. This action can only be reversed by an admin.
-      </div>
-      <div className="fg"><label className="fl">Reason (optional)</label><textarea className="fta" value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g. Moved out, Course completed, Non-payment…" /></div>
+      <div className="warn-box mb3">⚠ This will mark the member as discontinued. They will no longer appear in active members or have dues generated.</div>
+      <div className="fg"><label className="fl">Reason (optional)</label><textarea className="fta" value={reason} onChange={e => setReason(e.target.value)} placeholder="e.g. Moved out, Course completed…" /></div>
       {error && <div className="ferr">⚠ {error}</div>}
     </Modal>
   );
 }
 
-// ─── DUES ─────────────────────────────────────────────────────────────────────
+// ── Dues ──
 function Dues() {
   const [dues, setDues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -975,21 +1035,20 @@ function Dues() {
       </div>
       <div className="page-body">
         {dues.length > 0 && (
-          <div className="stat-grid" style={{ gridTemplateColumns: "repeat(3,1fr)", maxWidth: 500, marginBottom: 20 }}>
+          <div className="stat-grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", maxWidth: 480, marginBottom: 18 }}>
             {[["Total Due", fmt(totals.due)], ["Collected", fmt(totals.paid)], ["Pending", fmt(totals.due - totals.paid)]].map(([l, v]) => (
-              <div key={l} className="stat-card" style={{ padding: "14px 18px" }}>
+              <div key={l} className="stat-card" style={{ padding: "12px 16px" }}>
                 <div className="stat-label">{l}</div>
-                <div className="stat-value" style={{ fontSize: 22 }}>{v}</div>
+                <div className="stat-value" style={{ fontSize: 20 }}>{v}</div>
               </div>
             ))}
           </div>
         )}
-
         <div className="toolbar">
-          <select className="fs" style={{ width: 110 }} value={year} onChange={e => setYear(+e.target.value)}>
+          <select className="fs" style={{ width: 100 }} value={year} onChange={e => setYear(+e.target.value)}>
             {[2023, 2024, 2025, 2026].map(y => <option key={y}>{y}</option>)}
           </select>
-          <select className="fs" style={{ width: 105 }} value={month} onChange={e => setMonth(+e.target.value)}>
+          <select className="fs" style={{ width: 100 }} value={month} onChange={e => setMonth(+e.target.value)}>
             {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
           </select>
           <select className="fs" style={{ width: 130 }} value={status} onChange={e => setStatus(e.target.value)}>
@@ -999,7 +1058,6 @@ function Dues() {
             <option value="Paid">Paid</option>
           </select>
         </div>
-
         <div className="card">
           {loading ? <Spinner /> : dues.length === 0
             ? <div className="empty"><span className="empty-icon">🧾</span><div className="empty-title">No dues found</div><p style={{ fontSize: 13 }}>Generate dues for this month or adjust filters</p></div>
@@ -1010,17 +1068,17 @@ function Dues() {
                   const pct = d.amount > 0 ? (d.totalPaid / d.amount) * 100 : 0;
                   return (
                     <tr key={d.id}>
-                      <td><div className="fw5" style={{ color: "var(--coal)" }}>{d.memberName}</div></td>
+                      <td><div className="fw5" style={{ color: "var(--ink)" }}>{d.memberName}</div></td>
                       <td>{d.categoryName ? <span className="badge b-cat" style={{ fontSize: 11 }}>{d.categoryName}</span> : <span className="muted">—</span>}</td>
                       <td className="amount">{fmt(d.amount)}</td>
                       <td className="amount" style={{ color: "var(--ok)" }}>{fmt(d.totalPaid)}</td>
-                      <td className="amount" style={{ color: d.balance > 0 ? "var(--err)" : "var(--stone)" }}>{fmt(d.balance)}</td>
-                      <td style={{ width: 100 }}>
-                        <div className="progress-track"><div className="progress-fill" style={{ width: `${pct}%`, background: pct === 100 ? "var(--ok)" : pct > 0 ? "var(--warn)" : "var(--terra)" }} /></div>
+                      <td className="amount" style={{ color: d.balance > 0 ? "var(--err)" : "var(--ink-l)" }}>{fmt(d.balance)}</td>
+                      <td style={{ width: 90 }}>
+                        <div className="progress-track"><div className="progress-fill" style={{ width: `${pct}%`, background: pct === 100 ? "var(--ok)" : pct > 0 ? "var(--warn)" : "var(--teal)" }} /></div>
                         <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>{pct.toFixed(0)}%</div>
                       </td>
                       <td><StatusBadge status={d.status} /></td>
-                      <td>{d.status !== "Paid" && <button className="btn btn-p btn-sm" onClick={() => setPayModal(d)}>Record Payment</button>}</td>
+                      <td>{d.status !== "Paid" && <button className="btn btn-p btn-sm" onClick={() => setPayModal(d)}>Pay</button>}</td>
                     </tr>
                   );
                 })}
@@ -1029,7 +1087,6 @@ function Dues() {
           }
         </div>
       </div>
-
       <GenerateDuesModal open={showGenerate} onClose={() => setShowGenerate(false)} onSaved={() => { setShowGenerate(false); load(); toast("Dues generated", "success"); }} />
       {payModal && <AddPaymentModal due={payModal} onClose={() => setPayModal(null)} onSaved={() => { setPayModal(null); load(); toast("Payment recorded!", "success"); }} />}
     </>
@@ -1061,8 +1118,8 @@ function GenerateDuesModal({ open, onClose, onSaved }) {
       footer={!result ? <><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={submit} disabled={loading}>Generate</button></> : <button className="btn btn-p" onClick={done}>Done</button>}>
       {result ? (
         <div style={{ textAlign: "center", padding: "12px 0" }}>
-          <div style={{ fontSize: 46, marginBottom: 10 }}>✓</div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 21, marginBottom: 8 }}>Dues Generated</div>
+          <div style={{ fontSize: 44, marginBottom: 10 }}>✓</div>
+          <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 21, marginBottom: 8 }}>Dues Generated</div>
           <div className="muted"><strong style={{ color: "var(--ok)" }}>{result.generated ?? result.Generated}</strong> created · <strong>{result.skipped ?? result.Skipped}</strong> skipped</div>
         </div>
       ) : (
@@ -1102,29 +1159,24 @@ function AddPaymentModal({ due, onClose, onSaved }) {
   }
 
   return (
-    <Modal open onClose={onClose} title={`Record Payment`}
+    <Modal open onClose={onClose} title="Record Payment"
       footer={<><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={submit} disabled={loading}>Save Payment</button></>}>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 600, marginBottom: 14 }}>{due.memberName}</div>
+      <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 18, marginBottom: 14 }}>{due.memberName}</div>
       <div className="frow3 mb3">
         {[["Total Due", fmt(due.amount)], ["Already Paid", fmt(due.totalPaid)], ["Balance", fmt(due.balance)]].map(([l, v]) => (
-          <div key={l} style={{ textAlign: "center", padding: "10px 6px", background: "var(--stone-p)", borderRadius: 8 }}>
-            <div style={{ fontSize: 10.5, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".5px" }}>{l}</div>
+          <div key={l} style={{ textAlign: "center", padding: "10px 6px", background: "var(--mist)", borderRadius: 8 }}>
+            <div style={{ fontSize: 10.5, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".5px" }}>{l}</div>
             <div className="amount" style={{ fontSize: 15 }}>{v}</div>
           </div>
         ))}
       </div>
-
       <div className="mb3">
-        <div style={{ fontSize: 12, color: "var(--stone)", marginBottom: 4 }}>Payment progress after this entry</div>
-        <div className="progress-track" style={{ height: 10 }}>
-          <div className="progress-fill" style={{ width: `${pct}%`, background: "var(--terra)", opacity: .4 }} />
-        </div>
-        <div className="progress-track" style={{ height: 10, marginTop: 4 }}>
-          <div className="progress-fill" style={{ width: `${newPct}%`, background: newPct >= 100 ? "var(--ok)" : newPct > 0 ? "var(--warn)" : "var(--terra)" }} />
+        <div style={{ fontSize: 12, color: "var(--ink-l)", marginBottom: 4 }}>Payment progress after this entry</div>
+        <div className="progress-track" style={{ height: 8 }}>
+          <div className="progress-fill" style={{ width: `${newPct}%`, background: newPct >= 100 ? "var(--ok)" : newPct > 0 ? "var(--warn)" : "var(--teal)" }} />
         </div>
         <div className="muted mt1">{newPct.toFixed(0)}% after this payment</div>
       </div>
-
       <div className="frow">
         <div className="fg">
           <label className="fl">Amount (₹) *</label>
@@ -1140,9 +1192,9 @@ function AddPaymentModal({ due, onClose, onSaved }) {
       <div className="fg"><label className="fl">Notes</label><input className="fi" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Transaction ID, receipt no., etc." /></div>
       {due.payments?.length > 0 && (
         <div style={{ marginTop: 4 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--stone)", marginBottom: 8 }}>PAYMENT HISTORY</div>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink-l)", marginBottom: 8 }}>PAYMENT HISTORY</div>
           {due.payments.map(p => (
-            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--stone-p)", fontSize: 13 }}>
+            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--mist-d)", fontSize: 13 }}>
               <span>{new Date(p.paidOn).toLocaleDateString("en-IN")} · {p.method}</span>
               <span className="amount" style={{ color: "var(--ok)" }}>{fmt(p.amountPaid)}</span>
             </div>
@@ -1154,7 +1206,7 @@ function AddPaymentModal({ due, onClose, onSaved }) {
   );
 }
 
-// ─── PAYMENTS HISTORY ─────────────────────────────────────────────────────────
+// ── Payments History ──
 function PaymentsHistory() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1180,7 +1232,7 @@ function PaymentsHistory() {
               <tbody>
                 {payments.map(p => (
                   <tr key={p.id}>
-                    <td className="fw5" style={{ color: "var(--coal)" }}>{p.memberName}</td>
+                    <td className="fw5" style={{ color: "var(--ink)" }}>{p.memberName}</td>
                     <td className="muted">{MONTHS[(p.dueMonth ?? 1) - 1]} {p.dueYear}</td>
                     <td className="amount" style={{ color: "var(--ok)" }}>{fmt(p.amountPaid)}</td>
                     <td><span className="badge b-ok">{METHODS[p.method] ?? "Manual"}</span></td>
@@ -1197,7 +1249,7 @@ function PaymentsHistory() {
   );
 }
 
-// ─── STAFF ────────────────────────────────────────────────────────────────────
+// ── Staff ──
 function Staff() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1236,7 +1288,7 @@ function Staff() {
                   <tr key={s.id}>
                     <td>
                       <div className="flex aic gap2">
-                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 11, background: "var(--coal-m)" }}>{initials(s.fullName)}</div>
+                        <div className="avatar" style={{ width: 32, height: 32, fontSize: 11, background: "var(--ink-m)" }}>{initials(s.fullName)}</div>
                         <span className="fw5">{s.fullName}</span>
                       </div>
                     </td>
@@ -1252,9 +1304,7 @@ function Staff() {
           }
         </div>
       </div>
-
-      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Staff Member"
-        footer={null}>
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Add Staff Member" footer={null}>
         <AddStaffForm onSaved={() => { setShowAdd(false); load(); toast("Staff added", "success"); }} onCancel={() => setShowAdd(false)} />
       </Modal>
     </>
@@ -1288,9 +1338,7 @@ function AddStaffForm({ onSaved, onCancel }) {
   );
 }
 
-// ─── App Shell ────────────────────────────────────────────────────────────────
-
-// ─── SUPER ADMIN ─────────────────────────────────────────────────────────────
+// ── Super Admin ──
 function SuperAdminDashboard() {
   const [summary, setSummary] = useState(null);
   const [orgs, setOrgs] = useState([]);
@@ -1301,12 +1349,13 @@ function SuperAdminDashboard() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [s, o] = await Promise.all([
-      api("/api/super/summary").catch(() => null),
-      api("/api/super/organizations").catch(() => []),
-    ]);
-    setSummary(s); setOrgs(Array.isArray(o) ? o : []);
-    setLoading(false);
+    try {
+      const [s, o] = await Promise.all([
+        api("/api/super/summary").catch(() => null),
+        api("/api/super/organizations").catch(() => []),
+      ]);
+      setSummary(s); setOrgs(Array.isArray(o) ? o : []);
+    } catch {} finally { setLoading(false); }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -1314,74 +1363,53 @@ function SuperAdminDashboard() {
   async function toggleStatus(org) {
     try {
       await api(`/api/super/organizations/${org.id}/status`, { method: "PATCH", body: JSON.stringify({ isActive: !org.isActive }) });
-      toast(`${org.name} ${!org.isActive ? "activated" : "deactivated"}`, "success");
-      load();
+      toast(`${org.name} ${!org.isActive ? "activated" : "deactivated"}`, "success"); load();
     } catch (e) { toast(e.message, "error"); }
     setConfirm(null);
   }
 
-  if (loading) return <Spinner />;
-
   return (
     <>
       <div className="page-hdr">
-        <div><h1 className="page-title">Super Admin</h1><p className="page-sub">All organisations overview</p></div>
+        <div><h1 className="page-title">Organisations</h1><p className="page-sub">Platform overview</p></div>
         <button className="btn btn-p" onClick={() => setShowAdd(true)}>＋ New Organisation</button>
       </div>
       <div className="page-body">
-        <div className="stat-grid" style={{ marginBottom: 28 }}>
-          {[
-            { label: "Total Organisations", value: summary?.totalOrganizations ?? 0, sub: `${summary?.activeOrganizations ?? 0} active`, icon: "⬡" },
-            { label: "Total Members", value: summary?.totalMembers ?? 0, sub: "across all orgs", icon: "◉" },
-            { label: "Total Revenue", value: fmt(summary?.totalRevenue), sub: "all time collected", icon: "●" },
-            { label: "Outstanding", value: fmt(summary?.totalOutstanding), sub: "pending collection", icon: "◐" },
-          ].map(s => (
-            <div key={s.label} className="stat-card">
-              <div className="stat-icon">{s.icon}</div>
-              <div className="stat-label">{s.label}</div>
-              <div className="stat-value">{s.value}</div>
-              <div className="stat-sub">{s.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        {summary?.topOrganizations?.length > 0 && (
-          <div className="card" style={{ marginBottom: 20 }}>
-            <div className="card-hdr"><span className="card-title">Revenue by Organisation</span></div>
-            <div className="card-body">
-              {summary.topOrganizations.map(o => {
-                const maxRev = Math.max(...summary.topOrganizations.map(x => x.revenue), 1);
-                return (
-                  <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, color: "var(--stone)", width: 140, flexShrink: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</span>
-                    <div style={{ flex: 1, height: 26, background: "var(--stone-p)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
-                      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: `${(o.revenue / maxRev) * 100}%`, background: "var(--terra)", borderRadius: 4, transition: "width .6s ease" }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: "var(--coal-m)", width: 80, textAlign: "right", fontWeight: 500, flexShrink: 0 }}>{fmt(o.revenue)}</span>
-                  </div>
-                );
-              })}
-            </div>
+        {summary && (
+          <div className="stat-grid">
+            {[
+              { label: "Total Orgs", value: summary.totalOrganizations ?? "—", sub: "registered", icon: "🏢" },
+              { label: "Active Orgs", value: summary.activeOrganizations ?? "—", sub: "running", icon: "●" },
+              { label: "Total Members", value: summary.totalMembers ?? "—", sub: "across all orgs", icon: "◉" },
+              { label: "Total Users", value: summary.totalUsers ?? "—", sub: "all roles", icon: "👥" },
+            ].map(s => (
+              <div key={s.label} className="stat-card">
+                <div className="stat-icon">{s.icon}</div>
+                <div className="stat-label">{s.label}</div>
+                <div className="stat-value">{s.value}</div>
+                <div className="stat-sub">{s.sub}</div>
+              </div>
+            ))}
           </div>
         )}
-
         <div className="card">
-          <div className="card-hdr"><span className="card-title">All Organisations</span></div>
-          {orgs.length === 0
-            ? <div className="empty"><span className="empty-icon">⬡</span><div className="empty-title">No organisations yet</div></div>
+          {loading ? <Spinner /> : orgs.length === 0
+            ? <div className="empty"><span className="empty-icon">🏢</span><div className="empty-title">No organisations yet</div></div>
             : <div className="tbl-wrap"><table>
-              <thead><tr><th>Organisation</th><th>Type</th><th>Owner</th><th>Members</th><th>Revenue</th><th>Outstanding</th><th>Status</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Organisation</th><th>Owner</th><th>Type</th><th>Members</th><th>Status</th><th>Actions</th></tr></thead>
               <tbody>
                 {orgs.map(o => (
                   <tr key={o.id}>
-                    <td><div className="fw5" style={{ color: "var(--coal)" }}>{o.name}</div><div className="muted">{new Date(o.createdAt).toLocaleDateString("en-IN")}</div></td>
-                    <td><span className="badge b-cat">{o.businessType}</span></td>
-                    <td><div style={{ fontSize: 13 }}>{o.ownerName || "—"}</div><div className="muted">{o.ownerEmail || ""}</div></td>
-                    <td style={{ textAlign: "center" }}>{o.memberCount}</td>
-                    <td className="amount" style={{ color: "var(--ok)" }}>{fmt(o.totalRevenue)}</td>
-                    <td className="amount" style={{ color: o.totalOutstanding > 0 ? "var(--err)" : "var(--stone)" }}>{fmt(o.totalOutstanding)}</td>
+                    <td><div className="fw5" style={{ color: "var(--ink)" }}>{o.name}</div></td>
+                    <td className="muted">{o.ownerName || "—"}</td>
+                    <td><span className="badge b-cat">{o.businessType === 1 ? "Hostel" : o.businessType === 2 ? "Tuition" : o.businessType === 3 ? "Gym" : "Other"}</span></td>
+                    <td className="muted">{o.memberCount ?? 0}</td>
                     <td><StatusBadge status={o.isActive ? "Active" : "Inactive"} /></td>
-                    <td><button className={`btn btn-sm ${o.isActive ? "btn-err" : "btn-ok"}`} onClick={() => setConfirm(o)}>{o.isActive ? "Deactivate" : "Activate"}</button></td>
+                    <td>
+                      <button className={`btn btn-sm ${o.isActive ? "btn-err" : "btn-ok"}`} onClick={() => setConfirm(o)}>
+                        {o.isActive ? "Deactivate" : "Activate"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -1418,7 +1446,7 @@ function AddOrgModal({ open, onClose, onSaved }) {
   return (
     <Modal open={open} onClose={onClose} title="New Organisation" size="modal-lg"
       footer={<><button className="btn btn-g" onClick={onClose}>Cancel</button><button className="btn btn-p" onClick={submit} disabled={loading}>Create</button></>}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Organisation</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Organisation</div>
       <div className="frow">
         <div className="fg"><label className="fl">Organisation Name *</label><input className="fi" value={form.organizationName} onChange={set("organizationName")} placeholder="Green Valley Hostel" /></div>
         <div className="fg"><label className="fl">Business Type</label>
@@ -1428,7 +1456,7 @@ function AddOrgModal({ open, onClose, onSaved }) {
         </div>
       </div>
       <div className="divider" />
-      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--stone)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Owner Account</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-l)", textTransform: "uppercase", letterSpacing: ".8px", marginBottom: 12 }}>Owner Account</div>
       <div className="frow">
         <div className="fg"><label className="fl">Full Name *</label><input className="fi" value={form.ownerFullName} onChange={set("ownerFullName")} placeholder="Rajesh Kumar" /></div>
         <div className="fg"><label className="fl">Phone</label><input className="fi" value={form.ownerPhone} onChange={set("ownerPhone")} placeholder="9876543210" /></div>
@@ -1442,7 +1470,7 @@ function AddOrgModal({ open, onClose, onSaved }) {
   );
 }
 
-// ─── App Shell ────────────────────────────────────────────────────────────────
+// ── Nav Config ──
 const NAV = [
   { id: "dashboard", icon: "⊞", label: "Dashboard", roles: ["OrganizationOwner", "OrganizationStaff"] },
   { id: "categories", icon: "🏷", label: "Categories", roles: ["OrganizationOwner", "OrganizationStaff"] },
@@ -1453,10 +1481,17 @@ const NAV = [
   { id: "superadmin", icon: "★", label: "Organisations", roles: ["SuperAdmin"] },
 ];
 
+// ── App Shell ──
 function AppShell({ user, onLogout }) {
   const isSuperAdmin = user?.role === "SuperAdmin";
   const [page, setPage] = useState(isSuperAdmin ? "superadmin" : "dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const nav = NAV.filter(n => n.roles.includes(user?.role));
+
+  function navigate(id) {
+    setPage(id);
+    setSidebarOpen(false);
+  }
 
   function renderPage() {
     switch (page) {
@@ -1473,22 +1508,29 @@ function AppShell({ user, onLogout }) {
 
   return (
     <div className="app">
-      <nav className="sidebar">
+      {/* Sidebar overlay for mobile */}
+      <div className={`sidebar-overlay ${sidebarOpen ? "" : "hidden"}`} onClick={() => setSidebarOpen(false)} />
+
+      {/* Sidebar */}
+      <nav className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sb-logo">
-          <div className="sb-logo-text">H<span>.</span>alto</div>
-          <div className="sb-org">{isSuperAdmin ? "Super Admin" : (user?.organizationName || "Organisation")}</div>
+          <div className="sb-logo-mark"><HaltoLogo size={22} /></div>
+          <div>
+            <div className="sb-logo-text">Halto<span>.</span></div>
+            <div className="sb-org">{isSuperAdmin ? "Super Admin" : (user?.organizationName || "Organisation")}</div>
+          </div>
         </div>
         <div className="sb-nav">
           <div className="sb-sec">Navigation</div>
           {nav.map(n => (
-            <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => setPage(n.id)}>
+            <button key={n.id} className={`nav-item ${page === n.id ? "active" : ""}`} onClick={() => navigate(n.id)}>
               <span className="nav-icon">{n.icon}</span>{n.label}
             </button>
           ))}
         </div>
         <div className="sb-footer">
           <div className="user-pill">
-            <div className="avatar" style={{ background: isSuperAdmin ? "var(--warn)" : "var(--terra)" }}>{initials(user?.fullName)}</div>
+            <div className="avatar" style={{ background: isSuperAdmin ? "var(--warn)" : "var(--teal)" }}>{initials(user?.fullName)}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="u-name">{user?.fullName}</div>
               <div className="u-role">{isSuperAdmin ? "Super Admin" : user?.role === "OrganizationOwner" ? "Owner" : "Staff"}</div>
@@ -1497,12 +1539,22 @@ function AppShell({ user, onLogout }) {
           </div>
         </div>
       </nav>
-      <main className="main">{renderPage()}</main>
+
+      {/* Main */}
+      <main className="main">
+        {/* Mobile top bar */}
+        <div className="topbar">
+          <button className="hamburger" onClick={() => setSidebarOpen(true)}>☰</button>
+          <div className="topbar-logo">Halto<span>.</span></div>
+          <div className="avatar" style={{ background: isSuperAdmin ? "var(--warn)" : "var(--teal)", cursor: "default" }}>{initials(user?.fullName)}</div>
+        </div>
+        {renderPage()}
+      </main>
     </div>
   );
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+// ── Root ──
 export default function App() {
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem("halto_token");
